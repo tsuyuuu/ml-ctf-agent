@@ -49,7 +49,7 @@ def prepare_contestant_files(challenge, workspace):
     exported = []
 
     for filename in challenge.files:
-        source = Path(challenge.directory) / filename
+        source = Path(challenge.challenge_dir) / filename
 
         if not source.is_file():
             raise FileNotFoundError(
@@ -62,6 +62,11 @@ def prepare_contestant_files(challenge, workspace):
         )
 
         shutil.copy2(source, destination)
+
+        # Make exported contestant files readable by ctfuser.
+        # Do not grant write access.
+        destination.chmod(0o644)
+
         exported.append(filename)
 
     return exported
@@ -102,6 +107,10 @@ def main():
     ) as temporary_dir:
 
         workspace = Path(temporary_dir)
+
+        # TemporaryDirectory defaults to mode 700.
+        # Allow the unprivileged solver to traverse the mounted directory.
+        workspace.chmod(0o755)
 
         exported = prepare_contestant_files(
             challenge, workspace

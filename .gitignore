@@ -1,0 +1,22 @@
+cat > .gitignore <<'EOF'
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Credentials and environment variables
+.env
+.env.*
+!.env.example
+*token*
+*secret*
+
+# External benchmark datasets
+external/
+
+# Contestant files
+dev_challenges/
+
+# Temporary files
+*.zip
+EOF
