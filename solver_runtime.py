@@ -30,7 +30,7 @@ class DockerSolver:
             "--user", "10001:10001",
             "--workdir", "/work",
             "--tmpfs",
-            "/work:rw,uid=10001,gid=10001,mode=0700,size=64m",
+            "/work:rw,exec,nosuid,nodev,uid=10001,gid=10001,mode=0700,size=64m",
             "--tmpfs",
             "/tmp:rw,uid=10001,gid=10001,mode=1777,size=32m",
         ]
