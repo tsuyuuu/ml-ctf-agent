@@ -1,0 +1,102 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "run_command",
+      "description": "Execute a Linux command in the isolated CTF solver. Use this for static analysis, reverse engineering, cryptography, debugging, and interacting with the assigned challenge. Commands are subject to timeouts and network restrictions. Returns stdout, stderr, exit code, and truncation status.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Linux command to execute"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "read_file",
+      "description": "Read a permitted text file from the solver workspace. Large outputs are truncated. Binary files should be inspected using run_command.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "write_file",
+      "description": "Create or overwrite a file in the solver workspace. Useful for Python scripts and generated analysis files. Paths outside the workspace are rejected.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "submit_flag",
+      "description": "Submit a candidate CTF flag to the trusted evaluator. Returns verification status without revealing the expected flag.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "flag": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "flag"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "finish",
+      "description": "End the CTF attempt when no further useful progress can be made. This does not count as a verified solve.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+]

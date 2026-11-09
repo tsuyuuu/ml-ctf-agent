@@ -1,0 +1,24 @@
+
+FROM python:3.11-slim-bookworm
+
+# Install core CTF analysis utilities
+RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    binutils \
+    file \
+    gdb \
+    curl \
+    netcat-openbsd \
+    xxd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create an unprivileged solver user
+RUN useradd --create-home --uid 10001 ctfuser
+
+# Dedicated working directory
+WORKDIR /work
+
+# Do not execute as root
+USER ctfuser
+
+CMD ["/bin/sh"]
