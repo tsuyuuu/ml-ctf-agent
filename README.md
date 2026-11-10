@@ -139,7 +139,7 @@ A later development pilot of `rev-checker` (run `4d3125ab-328d-4dc8-801e-38e04a5
 
 ## Demonstration and reporting
 
-We have produced and added a report totaling our current findings, and future plans for implementation/improvement. We also recorded a video going through a run, and explaining how it works.
+We have produced and added a report (Assignment4Report.pdf) totaling our current findings, and future plans for implementation/improvement. We also recorded a video going through a run, and explaining how it works.
 
 ## Reused sources and AI disclosure
 
