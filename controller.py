@@ -174,7 +174,15 @@ class ToolDispatcher:
             }
 
         except (ValueError, KeyError, TypeError) as e:
+            message = str(e)
+
+            is_scope_violation = (
+                message == "Path outside permitted workspace"
+                or message == "Parent directory traversal blocked"
+            )
+
             return {
-                "error": str(e),
-                "error_type": type(e).__name__
+                "error": message,
+                "error_type": type(e).__name__,
+                "scope_violation": is_scope_violation,
             }

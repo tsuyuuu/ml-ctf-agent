@@ -345,10 +345,14 @@ EFFICIENT INVESTIGATION:
                     raise ValueError(
                         "Tool arguments must be an object"
                     )
-
+                
                 if name not in tool_definitions:
-                    scope_violation = True
-                    raise ValueError("Unknown tool requested")
+                    raise ValueError(
+                        f"Unknown tool '{name}'. "
+                        f"Available tools: {', '.join(sorted(tool_definitions))}. "
+                        "Use run_command to execute shell utilities such as "
+                        "objdump, file, strings, and readelf."
+                    )
 
                 schema = tool_definitions[name]
 

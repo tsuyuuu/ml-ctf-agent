@@ -203,7 +203,12 @@ def main():
         else PILOT_RESULTS
     )
 
-    completed = existing_slots(result_path)
+    if args.mode == "evaluation":
+        completed = existing_slots(result_path)
+    else:
+        # Pilots can repeat because they are development experiments.
+        # Never delete or overwrite previous pilot records.
+        completed = set()
 
     for challenge_id in chosen:
         trials = range(1, 4) if args.mode == "evaluation" else [1]
