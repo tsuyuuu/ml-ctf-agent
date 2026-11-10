@@ -115,5 +115,34 @@
       "required": ["path"]
     }
   }
+},
+{
+  "type": "function",
+  "function": {
+    "name": "disassemble_binary",
+    "description": "Disassemble a bounded address range of a contestant binary. Use this for targeted reverse engineering instead of dumping an entire executable. Specify hexadecimal start and stop addresses, with a maximum range of 512 bytes.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path under /challenge or /work."
+        },
+        "start_address": {
+          "type": "string",
+          "description": "Starting virtual address, e.g. 0x400f10."
+        },
+        "stop_address": {
+          "type": "string",
+          "description": "Ending virtual address, e.g. 0x401010."
+        }
+      },
+      "required": [
+        "path",
+        "start_address",
+        "stop_address"
+      ]
+    }
+  }
 }
 ]

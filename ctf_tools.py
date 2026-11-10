@@ -38,3 +38,54 @@ def inspect_binary(solver, path):
         }
 
     return results
+
+
+def disassemble_binary(solver, path, start_address, stop_address):
+    """
+    Return bounded Intel-syntax disassembly from a binary.
+
+    Addresses must be hexadecimal strings, e.g. 0x400f10.
+    The maximum allowed address range is 512 bytes.
+    """
+    import re
+
+    if not all(isinstance(x, str) for x in (
+        path, start_address, stop_address
+    )):
+        return {"error": "Arguments must be strings"}
+
+    if not re.fullmatch(r"0x[0-9a-fA-F]+", start_address):
+        return {"error": "Invalid start address"}
+
+    if not re.fullmatch(r"0x[0-9a-fA-F]+", stop_address):
+        return {"error": "Invalid stop address"}
+
+    start = int(start_address, 16)
+    stop = int(stop_address, 16)
+
+    if start >= stop:
+        return {"error": "Stop address must exceed start address"}
+
+    if stop - start > 512:
+        return {"error": "Address range exceeds 512 bytes"}
+
+    quoted = shlex.quote(path)
+
+    command = (
+        f"objdump -d -M intel "
+        f"--start-address={start} "
+        f"--stop-address={stop} "
+        f"{quoted}"
+    )
+
+    result = solver.run_command(command, timeout_s=10)
+
+    output = result.get("stdout", "")
+
+    return {
+        "disassembly": output[:5000],
+        "truncated": len(output) > 5000,
+        "exit_code": result.get("exit_code"),
+        "error": result.get("stderr", "")[:500],
+    }
+

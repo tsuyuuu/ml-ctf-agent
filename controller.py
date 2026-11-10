@@ -3,7 +3,7 @@ import base64
 import shlex
 from pathlib import PurePosixPath
 
-from ctf_tools import inspect_binary
+from ctf_tools import inspect_binary, disassemble_binary
 
 
 class ToolDispatcher:
@@ -66,7 +66,29 @@ class ToolDispatcher:
                     }
 
                 return inspect_binary(self.solver, path)
+            
+            elif name == "disassemble_binary":
+                path = self._safe_path(args["path"])
 
+                quoted = shlex.quote(path)
+                check = self.solver.run_command(
+                    f"test -f {quoted} && "
+                    f"test ! -L {quoted} && "
+                    f"test $(wc -c < {quoted}) -le 10485760",
+                    timeout_s=timeout_s,
+                )
+
+                if check.get("exit_code") != 0:
+                    return {
+                        "error": "File missing, symbolic link, or exceeds 10 MiB"
+                    }
+
+                return disassemble_binary(
+                    self.solver,
+                    path,
+                    args["start_address"],
+                    args["stop_address"],
+                )
             elif name == "run_command":
                 command = args["command"]
 
