@@ -5,8 +5,9 @@ from pathlib import PurePosixPath
 
 
 class ToolDispatcher:
-    def __init__(self, solver):
+    def __init__(self, solver, verifier = None):
         self.solver = solver
+        self.verifier = verifier
 
     def _safe_path(self, raw_path, write=False):
         if not isinstance(raw_path, str) or not raw_path:
@@ -104,12 +105,13 @@ class ToolDispatcher:
                 }
 
             elif name == "submit_flag":
-                # Must connect to the private course
-                # evaluator before real challenge runs.
-                return {
-                    "verified": False,
-                    "error": "Evaluator not connected"
-                }
+                if self.verifier is None:
+                        return {
+                            "verified": False,
+                            "error": "Private evaluator not configured"
+                        }
+
+                return self.verifier.verify(args["flag"])
 
             elif name == "finish":
                 return {

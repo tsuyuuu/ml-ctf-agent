@@ -25,18 +25,31 @@ DEV_DATASET = (
 TOOLS_FILE = BASE_DIR / "tools.json"
 
 
-def load_challenge(challenge_id):
-    """
-    Load a development challenge in the trusted controller.
-    Never expose the full challenge object to the solver.
-    """
-    dataset = CTFDataset(dataset_json=str(DEV_DATASET))
-    challenge = CTFChallenge(
-        dataset.get(challenge_id),
-        dataset.basedir
-    )
+def load_challenge(challenge_id, dataset="development"):
+    if dataset == "development":
+        dataset_path = (
+            BASE_DIR
+            / "external/NYU_CTF_Bench/development_dataset.json"
+        )
+    elif dataset == "ctftiny":
+        dataset_path = (
+            BASE_DIR
+            / "external/CTFTiny/ctftiny.json"
+        )
+    else:
+        raise ValueError(f"Unsupported dataset: {dataset}")
 
-    return challenge
+    ds = CTFDataset(dataset_json=str(dataset_path))
+
+    # Reject IDs that are not in the selected dataset.
+    challenge_data = ds.get(challenge_id)
+
+    if challenge_data is None:
+        raise ValueError(
+            f"Challenge '{challenge_id}' not found in {dataset}"
+        )
+
+    return CTFChallenge(challenge_data, ds.basedir)
 
 
 def prepare_contestant_files(challenge, workspace):
