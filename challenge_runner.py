@@ -27,6 +27,11 @@ DEV_DATASET = (
 TOOLS_FILE = BASE_DIR / "tools.json"
 
 # Look up a challenge by ID in the chosen dataset and return it as a CTFChallenge object.
+# This function was implemented with ChatGPT 6.0 Thinking.
+# We designed the overall architecture, security constraints, and execution
+# workflow, while using AI to assist with implementation, debugging, and
+# code documentation. We reviewed and tested the resulting code to ensure
+# it aligned with our project requirements.
 def load_challenge(challenge_id, dataset="development"):
     if dataset == "development":
         dataset_path = (
@@ -54,6 +59,11 @@ def load_challenge(challenge_id, dataset="development"):
     return CTFChallenge(challenge_data, ds.basedir)
 
 # Copy only the files a real contestant would get into the workspace, read-only.
+# This function was implemented with ChatGPT 6.0 Thinking.
+# We designed the overall architecture, security constraints, and execution
+# workflow, while using AI to assist with implementation, debugging, and
+# code documentation. We reviewed and tested the resulting code to ensure
+# it aligned with our project requirements.
 def prepare_contestant_files(challenge, workspace):
     """
     Export only authorized contestant files.
@@ -85,7 +95,6 @@ def prepare_contestant_files(challenge, workspace):
         exported.append(filename)
 
     return exported
-
 
 def main():
     parser = argparse.ArgumentParser()
