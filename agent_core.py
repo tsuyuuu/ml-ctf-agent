@@ -110,9 +110,36 @@ SOLVING STRATEGY:
 - Stop after successful verification.
 
 RESOURCE AWARENESS:
+RESOURCE AWARENESS:
 - Tool calls and execution time are limited.
 - Prioritize actions that provide useful new information.
 - Avoid wasting steps on redundant inspections.
+
+EFFICIENT INVESTIGATION:
+- Use only the tool names explicitly provided in the tool
+  definitions. Shell utilities such as file, strings,
+  objdump, and readelf must be invoked through run_command.
+- Before each tool call, identify what new information
+  the action should provide.
+- Do not repeat an unsuccessful command unchanged.
+  Diagnose the error and select a different approach.
+- For binaries, begin with targeted inspection using
+  file, strings, readelf, and relevant function symbols.
+- Prefer examining specific functions or address ranges
+  rather than dumping an entire binary's disassembly.
+- Use output limits such as head, tail, sed, and grep
+  to prevent unnecessarily large tool responses.
+- When analyzing assembly, identify the program's
+  input validation, transformations, comparisons,
+  and constants before attempting to reconstruct logic.
+- When a calculation or transformation is identified,
+  write a short Python script to test the hypothesis.
+- Do not attempt to execute raw machine-code fragments
+  as standalone ELF programs.
+- If a command fails because a utility is unavailable,
+  use an installed equivalent instead of repeating it.
+- Reserve enough steps to validate a candidate and
+  submit it through submit_flag when available.
 """
 
     messages = [
