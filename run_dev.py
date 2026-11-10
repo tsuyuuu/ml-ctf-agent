@@ -59,8 +59,8 @@ try:
         execute_tool=dispatcher,
         api_key=api_key,
         tools=tools,
-        max_steps=8,
-        max_seconds=180
+        max_steps=15,
+        max_seconds=300
     )
 
     print("\n=== RUN SUMMARY ===")
