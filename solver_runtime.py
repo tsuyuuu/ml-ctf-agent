@@ -41,8 +41,6 @@ class DockerSolver:
             if not path.is_dir():
                 raise ValueError("Challenge directory not found")
 
-            # Only pass a prepared directory containing
-            # contestant-facing files, never the benchmark repo.
             cmd += [
                 "--mount",
                 f"type=bind,src={path},dst=/challenge,readonly"
