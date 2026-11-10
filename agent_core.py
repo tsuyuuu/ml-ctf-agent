@@ -55,10 +55,8 @@ def run_agent(
         for t in tools
     }
 
-    # ----------------------------------------
-    # TRACE LOGGING
-    # ----------------------------------------
 
+    # trace logging
     def log_event(event):
         event = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -69,10 +67,7 @@ def run_agent(
         with trace_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(event, default=str) + "\n")
 
-    # ----------------------------------------
-    # AGENT INSTRUCTIONS
-    # ----------------------------------------
-
+    # agent instructions
     system_prompt = """
 You are an autonomous cybersecurity CTF-solving agent.
 
@@ -166,10 +161,8 @@ EFFICIENT INVESTIGATION:
         "tools": list(tool_definitions),
     })
 
-    # ----------------------------------------
-    # AUTONOMOUS AGENT LOOP
-    # ----------------------------------------
 
+    # autonomous agent loop
     while tool_calls < max_steps:
 
         remaining = max_seconds - (time.monotonic() - start)
@@ -177,11 +170,8 @@ EFFICIENT INVESTIGATION:
         if remaining <= 0:
             status = "timeout"
             break
-
-        # ------------------------------------
-        # REQUEST MODEL ACTION WITH RETRIES
-        # ------------------------------------
-
+        
+        # request model action with retries
         data = None
 
         for retry in range(3):
@@ -269,10 +259,8 @@ EFFICIENT INVESTIGATION:
         if data is None:
             break
 
-        # ------------------------------------
-        # RECORD MODEL USAGE
-        # ------------------------------------
 
+        # record model usage
         model_calls += 1
 
         in_count = data.get("prompt_eval_count")
@@ -299,10 +287,8 @@ EFFICIENT INVESTIGATION:
 
         calls = assistant_message.get("tool_calls") or []
 
-        # ------------------------------------
-        # NO TOOL REQUESTED
-        # ------------------------------------
 
+        # no tool requested
         if not calls:
             print(
                 "\nAgent response:",
@@ -312,10 +298,7 @@ EFFICIENT INVESTIGATION:
             status = "no_tool_call"
             break
 
-        # ------------------------------------
-        # EXECUTE REQUESTED TOOLS
-        # ------------------------------------
-
+        # execute required tools
         for call in calls:
 
             remaining = max_seconds - (
@@ -373,7 +356,7 @@ EFFICIENT INVESTIGATION:
                         "Unexpected tool argument"
                     )
 
-                # Actual security enforcement belongs
+                # actual security enforcement belongs
                 # to the trusted tool dispatcher.
                 result = execute_tool(
                     name,
@@ -411,10 +394,8 @@ EFFICIENT INVESTIGATION:
                 "content": json.dumps(result, default=str),
             })
 
-            # --------------------------------
-            # STOPPING CONDITIONS
-            # --------------------------------
 
+            # stopping conditions
             if scope_violation or result.get("scope_violation"):
                 status = "scope_violation"
                 break
@@ -439,10 +420,8 @@ EFFICIENT INVESTIGATION:
         ):
             break
 
-    # ----------------------------------------
-    # FINAL RUN SUMMARY
-    # ----------------------------------------
 
+    # final run summary
     elapsed = round(time.monotonic() - start, 2)
 
     summary = {
