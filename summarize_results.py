@@ -23,6 +23,7 @@ SOLVE_PNG = BASE / "results" / "evaluation" / "solve_rate_variance.png"
 
 EXPECTED_TRIALS = {1, 2, 3}
 
+# These statuses mark evaluation completeness as unresolved.
 INCIDENT_STATUSES = {
     "model_error",
     "infrastructure_error",
@@ -46,7 +47,7 @@ def load_records():
 
     return records
 
-
+# Missing measurements make the aggregate unavailable
 def average(rows, field):
     values = [r.get(field) for r in rows]
 
@@ -66,7 +67,7 @@ def total(rows, field):
 
 
 def known_tokens(record, field):
-    # Prefer explicit known-token fields when present.
+    # Known counts may omit failed API requests that returned no usage data.
     return record.get(
         f"known_{field}_tokens",
         record.get(f"{field}_tokens"),
@@ -125,6 +126,8 @@ def summarize_challenge(challenge_id, rows):
             f"Unexpected trial number for {challenge_id}"
         )
 
+    # Trial coverage and incident status are separate:
+    # all three records may exist while the evaluation remains incomplete.
     slots_complete = (
         set(trials) == EXPECTED_TRIALS
         and len(rows) == len(EXPECTED_TRIALS)
@@ -152,7 +155,6 @@ def summarize_challenge(challenge_id, rows):
     success_rate = 100 * mean(outcomes) if slots_complete else None
 
     result = {
-        # Original fields
         "challenge_id": challenge_id,
         "attempts": n,
         "successes": successes,
@@ -185,7 +187,6 @@ def summarize_challenge(challenge_id, rows):
             if slots_complete else None
         ),
 
-        # New statistical fields
         "sample_variance": (
             variance(outcomes)
             if slots_complete and n > 1 else None
@@ -223,7 +224,6 @@ def summarize_challenge(challenge_id, rows):
             if slots_complete else None
         ),
 
-        # Resource usage
         "total_elapsed_s": total(rows, "elapsed_s"),
         "mean_model_calls": average(rows, "model_calls"),
         "total_model_calls": total(rows, "model_calls"),
@@ -382,8 +382,9 @@ def plot_per_challenge_solve_rate(summary_rows):
         dpi=200,
     )
     plt.close(fig)
-# Published Ollama gpt-oss:120b rates, USD per million tokens.
-# Pricing source: https://ollama.com/pricing
+    
+# Assumed USD rates per million tokens for an illustrative cost estimate.
+# Applied to known token counts only; this does not represent actual billed cost.
 INPUT_PRICE_PER_MILLION = 0.15
 OUTPUT_PRICE_PER_MILLION = 0.60
 
@@ -519,7 +520,6 @@ def main():
         "max_steps": records[0]["max_steps"],
         "max_seconds": records[0]["max_seconds"],
 
-        # Original summary
         "total_attempts": total_attempts,
         "total_successes": total_successes,
         "overall_complete": overall_complete,
@@ -601,7 +601,6 @@ def main():
         ],
     }
 
-    # Detailed per-attempt data for reproducibility
     attempt_rows = []
 
     for r in sorted(
