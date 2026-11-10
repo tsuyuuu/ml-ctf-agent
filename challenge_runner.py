@@ -1,4 +1,5 @@
 # This code was created using ChatGPT-6 on November 10, 2026. The code was reviewed and debugged by team members to fit desired results.
+# Runs the CTF-solving agent on a single challenge from the NYU CTF Bench dataset inside a sandboxed Docker container, then prints a summary of the run.
 
 import argparse
 import json
@@ -25,7 +26,7 @@ DEV_DATASET = (
 
 TOOLS_FILE = BASE_DIR / "tools.json"
 
-
+# Look up a challenge by ID in the chosen dataset and return it as a CTFChallenge object.
 def load_challenge(challenge_id, dataset="development"):
     if dataset == "development":
         dataset_path = (
@@ -52,7 +53,7 @@ def load_challenge(challenge_id, dataset="development"):
 
     return CTFChallenge(challenge_data, ds.basedir)
 
-
+# Copy only the files a real contestant would get into the workspace, read-only.
 def prepare_contestant_files(challenge, workspace):
     """
     Export only authorized contestant files.
