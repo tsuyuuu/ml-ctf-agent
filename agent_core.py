@@ -131,12 +131,19 @@ RESOURCE AWARENESS:
     ]
 
     log_event({
-        "type": "start",
-        "challenge_id": challenge_id,
-        "model": model,
-        "max_steps": max_steps,
-        "max_seconds": max_seconds,
-        "tools": list(tool_definitions),
+        "type": "model_retry",
+        "retry": retry + 1,
+        "status_code": code,
+        "error": str(e),
+        "response_body": (
+            e.response.text[:2000]
+            if e.response is not None
+            else None
+        ),
+        "message_count": len(messages),
+        "message_roles": [
+            m.get("role") for m in messages
+        ],
     })
 
     # ----------------------------------------
