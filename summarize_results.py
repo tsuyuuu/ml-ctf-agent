@@ -250,6 +250,7 @@ def summarize_challenge(challenge_id, rows):
         "status_counts": dict(Counter(
             r["status"] for r in rows
         )),
+        "estimated_cost_usd": estimated_total_cost(rows),
     }
 
     return result
@@ -352,6 +353,61 @@ def plot_solve_rate_variance(trial_rows):
     fig.savefig(SOLVE_PNG, dpi=200)
     plt.close(fig)
 
+def plot_per_challenge_solve_rate(summary_rows):
+    labels = [r["challenge_id"] for r in summary_rows]
+    rates = [r["success_rate_pct"] for r in summary_rows]
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+
+    bars = ax.bar(labels, rates)
+
+    ax.set_ylim(0, 100)
+    ax.set_ylabel("Verified success rate (%)")
+    ax.set_xlabel("CTFTiny challenge")
+    ax.set_title("CTFTiny: Verified success rate by challenge")
+
+    for bar, rate in zip(bars, rates):
+        ax.annotate(
+            f"{rate:.1f}%",
+            (bar.get_x() + bar.get_width() / 2, rate),
+            ha="center",
+            va="bottom",
+            xytext=(0, 5),
+            textcoords="offset points",
+        )
+
+    fig.tight_layout()
+    fig.savefig(
+        BASE / "results" / "evaluation" / "per_challenge_solve_rate.png",
+        dpi=200,
+    )
+    plt.close(fig)
+# Published Ollama gpt-oss:120b rates, USD per million tokens.
+# Pricing source: https://ollama.com/pricing
+INPUT_PRICE_PER_MILLION = 0.15
+OUTPUT_PRICE_PER_MILLION = 0.60
+
+
+def estimate_cost(record):
+    input_tokens = known_tokens(record, "input")
+    output_tokens = known_tokens(record, "output")
+
+    if input_tokens is None or output_tokens is None:
+        return None
+
+    return (
+        input_tokens * INPUT_PRICE_PER_MILLION
+        + output_tokens * OUTPUT_PRICE_PER_MILLION
+    ) / 1_000_000
+
+
+def estimated_total_cost(records):
+    costs = [estimate_cost(record) for record in records]
+
+    if any(cost is None for cost in costs):
+        return None
+
+    return round(sum(costs), 8)
 
 def main():
     ids = [
@@ -516,6 +572,7 @@ def main():
                 records, "output"
             ),
             "cost_usd": total(records, "cost_usd"),
+            "estimated_cost_usd": estimated_total_cost(records),
         },
 
         "incident_counts": dict(Counter(
@@ -574,6 +631,11 @@ def main():
             ),
             "cost_usd": r.get("cost_usd"),
             "trace_file": r.get("trace_file"),
+            "estimated_cost_usd": (
+                round(estimate_cost(r), 8)
+                if estimate_cost(r) is not None
+                else None
+            ),
         })
 
     SUMMARY_JSON.write_text(
@@ -586,13 +648,16 @@ def main():
     write_csv(TRIAL_CSV, trial_rows)
     plot_pass_at_k(pass_rows)
     plot_solve_rate_variance(trial_rows)
+    plot_per_challenge_solve_rate(summary)
+    
 
     print(json.dumps(output, indent=2))
 
     print(
         "\nSaved summary.json, per_challenge.csv, "
         "per_attempt.csv, pass_at_k.csv, per_trial.csv, "
-        "pass_at_k.png, and solve_rate_variance.png"
+        "pass_at_k.png, solve_rate_variance.png, "
+        "and per_challenge_solve_rate.png"
     )
 
 
