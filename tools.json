@@ -98,5 +98,22 @@
         "additionalProperties": false
       }
     }
+  },
+  {
+  "type": "function",
+  "function": {
+    "name": "inspect_binary",
+    "description": "Inspect a contestant binary inside the isolated solver. Returns bounded file type, ELF header, and relevant strings. Use this before manually dumping large amounts of disassembly.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Absolute path to a contestant file under /challenge or /work."
+        }
+      },
+      "required": ["path"]
+    }
   }
+}
 ]

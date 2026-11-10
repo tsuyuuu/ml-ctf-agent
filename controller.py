@@ -3,9 +3,11 @@ import base64
 import shlex
 from pathlib import PurePosixPath
 
+from ctf_tools import inspect_binary
+
 
 class ToolDispatcher:
-    def __init__(self, solver, verifier = None):
+    def __init__(self, solver, verifier=None):
         self.solver = solver
         self.verifier = verifier
 
@@ -41,7 +43,31 @@ class ToolDispatcher:
 
     def __call__(self, name, args, timeout_s=10):
         try:
-            if name == "run_command":
+            if name == "inspect_binary":
+                path = self._safe_path(args["path"])
+
+                # Inspect only a regular file within the solver.
+                # The size check prevents excessive processing.
+                quoted = shlex.quote(path)
+
+                check = self.solver.run_command(
+                    f"test -f {quoted} && "
+                    f"test ! -L {quoted} && "
+                    f"test $(wc -c < {quoted}) -le 10485760",
+                    timeout_s=timeout_s,
+                )
+
+                if check.get("exit_code") != 0:
+                    return {
+                        "error": (
+                            "File missing, symbolic link, "
+                            "or exceeds 10 MiB"
+                        )
+                    }
+
+                return inspect_binary(self.solver, path)
+
+            elif name == "run_command":
                 command = args["command"]
 
                 return self.solver.run_command(
@@ -79,9 +105,10 @@ class ToolDispatcher:
                 if not isinstance(content, str):
                     return {"error": "Content must be text"}
 
-                # Keep requests bounded for this first version
                 if len(content.encode("utf-8")) > 2000:
-                    return {"error": "Content exceeds 2000 bytes"}
+                    return {
+                        "error": "Content exceeds 2000 bytes"
+                    }
 
                 encoded = base64.b64encode(
                     content.encode("utf-8")
@@ -106,10 +133,10 @@ class ToolDispatcher:
 
             elif name == "submit_flag":
                 if self.verifier is None:
-                        return {
-                            "verified": False,
-                            "error": "Private evaluator not configured"
-                        }
+                    return {
+                        "verified": False,
+                        "error": "Private evaluator not configured"
+                    }
 
                 return self.verifier.verify(args["flag"])
 
@@ -119,7 +146,13 @@ class ToolDispatcher:
                     "reason": args.get("reason", "")
                 }
 
-            return {"error": "Unknown tool"}
+            return {
+                "error": "Unknown tool",
+                "error_type": "ValueError"
+            }
 
         except (ValueError, KeyError, TypeError) as e:
-            return {"error": str(e)}
+            return {
+                "error": str(e),
+                "error_type": type(e).__name__
+            }
