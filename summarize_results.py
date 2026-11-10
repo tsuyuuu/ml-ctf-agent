@@ -10,16 +10,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 BASE = Path(__file__).resolve().parent
-RESULTS = BASE / "results.jsonl"
+RESULTS = BASE / "results" / "evaluation" / "results.jsonl"
 IDS_FILE = BASE / "evaluation_ids.txt"
 
-SUMMARY_JSON = BASE / "summary.json"
-SUMMARY_CSV = BASE / "per_challenge.csv"
-ATTEMPTS_CSV = BASE / "per_attempt.csv"
-PASS_CSV = BASE / "pass_at_k.csv"
-TRIAL_CSV = BASE / "per_trial.csv"
-PASS_PNG = BASE / "pass_at_k.png"
-SOLVE_PNG = BASE / "solve_rate_variance.png"
+SUMMARY_JSON = BASE / "results" / "evaluation" / "summary.json"
+SUMMARY_CSV = BASE / "results" / "evaluation" / "per_challenge.csv"
+ATTEMPTS_CSV = BASE / "results" / "evaluation" / "per_attempt.csv"
+PASS_CSV = BASE / "results" / "evaluation" / "pass_at_k.csv"
+TRIAL_CSV = BASE / "results" / "evaluation" / "per_trial.csv"
+PASS_PNG = BASE / "results" / "evaluation" / "pass_at_k.png"
+SOLVE_PNG = BASE / "results" / "evaluation" / "solve_rate_variance.png"
 
 EXPECTED_TRIALS = {1, 2, 3}
 

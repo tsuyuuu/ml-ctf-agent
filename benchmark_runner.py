@@ -16,8 +16,8 @@ from solver_runtime import DockerSolver
 
 BASE = Path(__file__).resolve().parent
 IDS_FILE = BASE / "evaluation_ids.txt"
-PILOT_RESULTS = BASE / "ctftiny_pilot_results.jsonl"
-EVAL_RESULTS = BASE / "results.jsonl"
+PILOT_RESULTS = BASE / "results" / "development" / "ctftiny_pilot_results.jsonl"
+EVAL_RESULTS = BASE / "results" / "evaluation" / "results.jsonl"
 
 MODEL = "gpt-oss:120b"
 MAX_STEPS = 15
