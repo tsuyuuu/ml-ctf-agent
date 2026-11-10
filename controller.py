@@ -5,12 +5,12 @@ from pathlib import PurePosixPath
 
 from ctf_tools import inspect_binary, disassemble_binary
 
-
+# Switches between tools, choosing which ones should be called as necessary. 
 class ToolDispatcher:
     def __init__(self, solver, verifier=None):
         self.solver = solver
         self.verifier = verifier
-
+    # Ensures that the path is permitted, not outside of reasonable work environment
     def _safe_path(self, raw_path, write=False):
         if not isinstance(raw_path, str) or not raw_path:
             raise ValueError("Invalid path")
@@ -40,7 +40,9 @@ class ToolDispatcher:
             raise ValueError("Path outside permitted workspace")
 
         return value
-
+    # Different tools that can be called, looking at each name to see if needed
+    # This code was created using ChatGPT-6 on November 10, 2026. The code was reviewed and debugged by team members to fit desired results.
+    # The changing by name portions were handwriten, but the checks and other variables were generated
     def __call__(self, name, args, timeout_s=10):
         try:
             if name == "inspect_binary":
@@ -175,7 +177,7 @@ class ToolDispatcher:
 
         except (ValueError, KeyError, TypeError) as e:
             message = str(e)
-
+            # Looks for out of scope violation to run
             is_scope_violation = (
                 message == "Path outside permitted workspace"
                 or message == "Parent directory traversal blocked"
