@@ -1,4 +1,8 @@
+"""The code was generated with AI assistance to produce benchmark summaries,
+CSV tables, and plots from recorded attempts.
+"""
 
+import csv
 import csv
 import json
 import math
