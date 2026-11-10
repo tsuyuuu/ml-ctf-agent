@@ -7,7 +7,7 @@ from agent_core import run_agent
 from solver_runtime import DockerSolver
 from controller import ToolDispatcher
 
-# Load Ollama API key securely
+# Load Ollama API key securely into environment
 api_key = os.environ.get("OLLAMA_API_KEY")
 
 if not api_key:
@@ -20,7 +20,6 @@ all_tools = json.loads(
     Path("tools.json").read_text()
 )
 
-# No private evaluator yet: exclude flag submission
 enabled = {
     "run_command",
     "read_file",
@@ -33,7 +32,7 @@ tools = [
     if t["function"]["name"] in enabled
 ]
 
-# Start a fresh, isolated solver
+# Starts fresh isolated solver
 solver = DockerSolver()
 
 try:
