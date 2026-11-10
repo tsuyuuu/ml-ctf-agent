@@ -5,6 +5,9 @@ import math
 from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import mean, stdev, variance
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 BASE = Path(__file__).resolve().parent
 RESULTS = BASE / "results.jsonl"
@@ -14,6 +17,9 @@ SUMMARY_JSON = BASE / "summary.json"
 SUMMARY_CSV = BASE / "per_challenge.csv"
 ATTEMPTS_CSV = BASE / "per_attempt.csv"
 PASS_CSV = BASE / "pass_at_k.csv"
+TRIAL_CSV = BASE / "per_trial.csv"
+PASS_PNG = BASE / "pass_at_k.png"
+SOLVE_PNG = BASE / "solve_rate_variance.png"
 
 EXPECTED_TRIALS = {1, 2, 3}
 
@@ -271,6 +277,82 @@ def write_csv(path, rows):
             writer.writerow(clean)
 
 
+
+def plot_pass_at_k(pass_rows):
+    """Compare standard Pass@k estimates with ordered first-k outcomes."""
+    ks = [row["k"] for row in pass_rows]
+    estimated = [row["estimated_pass_at_k_pct"] for row in pass_rows]
+    observed = [row["observed_first_k_pct"] for row in pass_rows]
+
+    if any(value is None for value in estimated + observed):
+        print("Skipping Pass@k plot: incomplete trial slots")
+        return
+
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    ax.plot(ks, estimated, marker="o", linewidth=2,
+            label="Estimated Pass@k")
+    ax.plot(ks, observed, marker="s", linewidth=2,
+            label="Observed success within first k trials")
+    ax.set_xticks([1, 2, 3])
+    ax.set_xlabel("Number of attempts (k)")
+    ax.set_ylabel("Challenges solved (%)")
+    ax.set_title("CTFTiny: Pass@k across 1–3 attempts")
+    ax.set_ylim(0, 100)
+    ax.grid(axis="y", alpha=0.25)
+    ax.legend(loc="upper left", fontsize=9)
+    fig.text(0.5, 0.01,
+             "Recorded attempts include model/tool incidents; estimates are descriptive.",
+             ha="center", fontsize=8)
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
+    fig.savefig(PASS_PNG, dpi=200)
+    plt.close(fig)
+
+
+def summarize_trials(records, challenge_count):
+    """Average binary solve outcome and sample variance across challenges, by trial."""
+    rows = []
+    for trial in sorted(EXPECTED_TRIALS):
+        trial_records = [r for r in records if r["trial"] == trial]
+        outcomes = [int(bool(r.get("verified", False))) for r in trial_records]
+        full = len(trial_records) == challenge_count
+        rows.append({
+            "trial": trial,
+            "challenges": len(trial_records),
+            "average_solve_rate_pct": 100 * mean(outcomes) if full else None,
+            "sample_variance": variance(outcomes) if full and len(outcomes) > 1 else None,
+            "sample_sd_pp": 100 * stdev(outcomes) if full and len(outcomes) > 1 else None,
+            "verified_successes": sum(outcomes),
+        })
+    return rows
+
+
+def plot_solve_rate_variance(trial_rows):
+    """Average solve rate by trial, with sample standard-deviation error bars."""
+    if any(row["average_solve_rate_pct"] is None or
+           row["sample_sd_pp"] is None for row in trial_rows):
+        print("Skipping solve-rate plot: insufficient trial coverage")
+        return
+
+    trials = [row["trial"] for row in trial_rows]
+    averages = [row["average_solve_rate_pct"] for row in trial_rows]
+    deviations = [row["sample_sd_pp"] for row in trial_rows]
+
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    ax.bar(trials, averages, yerr=deviations, capsize=6)
+    ax.set_xticks([1, 2, 3])
+    ax.set_xlabel("Trial number")
+    ax.set_ylabel("Average verified solve rate across challenges (%)")
+    ax.set_title("CTFTiny: Average solve rate per trial and variability")
+    ax.set_ylim(0, 100)
+    ax.grid(axis="y", alpha=0.25)
+    fig.text(0.5, 0.01,
+             "Error bars: sample SD across challenges (not a confidence interval).",
+             ha="center", fontsize=8)
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
+    fig.savefig(SOLVE_PNG, dpi=200)
+    plt.close(fig)
+
+
 def main():
     ids = [
         line.strip()
@@ -370,6 +452,7 @@ def main():
 
     total_input = token_total(records, "input")
     total_output = token_total(records, "output")
+    trial_rows = summarize_trials(records, len(ids))
 
     output = {
         "benchmark": "CTFTiny",
@@ -444,6 +527,7 @@ def main():
             r["status"] for r in records
         )),
         "pass_at_k": pass_rows,
+        "per_trial": trial_rows,
         "challenges": summary,
 
         "limitations": [
@@ -499,12 +583,16 @@ def main():
     write_csv(SUMMARY_CSV, summary)
     write_csv(ATTEMPTS_CSV, attempt_rows)
     write_csv(PASS_CSV, pass_rows)
+    write_csv(TRIAL_CSV, trial_rows)
+    plot_pass_at_k(pass_rows)
+    plot_solve_rate_variance(trial_rows)
 
     print(json.dumps(output, indent=2))
 
     print(
         "\nSaved summary.json, per_challenge.csv, "
-        "per_attempt.csv, and pass_at_k.csv"
+        "per_attempt.csv, pass_at_k.csv, per_trial.csv, "
+        "pass_at_k.png, and solve_rate_variance.png"
     )
 
 
