@@ -102,7 +102,7 @@ def run_trial(challenge_id, trial, sample_type, tools, api_key):
 
         exported = prepare_contestant_files(challenge, workspace)
 
-        # Trusted controller only: never send this to the model.
+        # For trusted controller only 
         expected_flag = challenge.flag
 
         verifier = FlagVerifier(
@@ -180,7 +180,7 @@ def main():
 
     chosen = [args.challenge_id] if args.challenge_id else ids
 
-    # Validate all selected challenges before launching attempts.
+    # Validate all selected challenges before launching attempts
     for challenge_id in chosen:
         challenge = preflight(challenge_id)
         print(
@@ -207,7 +207,6 @@ def main():
         completed = existing_slots(result_path)
     else:
         # Pilots can repeat because they are development experiments.
-        # Never delete or overwrite previous pilot records.
         completed = set()
 
     for challenge_id in chosen:
@@ -220,7 +219,6 @@ def main():
                 print(f"SKIPPING existing trial: {slot}")
                 continue
 
-            # Pilot results and official results never share a file.
             print(
                 f"\n=== {args.mode.upper()} "
                 f"{challenge_id} TRIAL {trial} ===",
