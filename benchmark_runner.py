@@ -16,12 +16,12 @@ import hmac
 from flag_verifier import FlagVerifier
 
 BASE = Path(__file__).resolve().parent
-RESULTS = BASE / "development_results.jsonl"
+RESULTS = BASE / "ctftiny_pilot_results.jsonl"
 
 
 def run_trial(challenge_id, trial, tools, api_key):
     # Fresh challenge object and model conversation
-    challenge = load_challenge(challenge_id)
+    challenge = load_challenge(challenge_id, dataset="ctftiny")
 
     with tempfile.TemporaryDirectory(prefix="ctf_trial_") as temp:
         workspace = Path(temp)
@@ -64,7 +64,7 @@ def run_trial(challenge_id, trial, tools, api_key):
             result.update({
                 "config_id": "agent",
                 "trial": trial,
-                "sample_type": "development",
+                "sample_type": "pilot",
                 "recorded_at": datetime.now(
                     timezone.utc
                 ).isoformat(),
@@ -89,7 +89,10 @@ def main():
     # Only permit challenge IDs in the development dataset.
     # Never fall back to the CTFTiny evaluation dataset.
     try:
-        challenge = load_challenge(args.challenge_id)
+        challenge = load_challenge(
+        args.challenge_id,
+        dataset="ctftiny"
+    )
     except (KeyError, ValueError, LookupError) as e:
         parser.error(
             f"Challenge ID is not in the development dataset: "
