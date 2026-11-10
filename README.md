@@ -6,7 +6,7 @@ Duke University · Final Project, Part 1 · November 11, 2026
 
 This project implements an autonomous, multi-step CTF-solving agent using the Ollama Cloud chat API (`gpt-oss:120b`). An agent loop selects tools, observes their outputs, and adapts subsequent actions. A trusted Python controller manages tool dispatch, isolated execution, candidate-flag verification, resource budgets, and JSONL trace logging. The solver does **not** receive the benchmark answer key.
 
-**This repository contains two distinct agent versions:** the frozen configuration used for the nine reported evaluation attempts and a post-evaluation development configuration. Do not conflate their results.
+This repository contains two distinct agent versions: the frozen configuration used for the nine reported evaluation attempts and a post-evaluation development configuration. Do not conflate their results.
 
 ## Evaluated benchmark and configuration
 
@@ -21,7 +21,7 @@ This project implements an autonomous, multi-step CTF-solving agent using the Ol
 | Agent commit used for evaluation | `7a39bf0f4e86c266b4475323e61ca9ad3aa5edd3` |
 | Configuration ID in records | `agent` |
 
-The current code includes **post-evaluation improvements**—targeted binary inspection, bounded disassembly, more efficient tool guidance, and recovery from unknown tool names—initially committed at `8acbb26`. A later dependency-lock commit was `83356be`. Use `git rev-parse HEAD` to identify the precise current development configuration; **it was not evaluated in a second full nine-run benchmark**.
+The current code includes post-evaluation improvements: targeted binary inspection, bounded disassembly, more efficient tool guidance, and recovery from unknown tool names, all initially committed at `8acbb26`. A later dependency-lock commit was `83356be`. Use `git rev-parse HEAD` to identify the precise current development configuration; **it was not evaluated in a second full nine-run benchmark**.
 
 ## Prerequisites and clean setup
 
@@ -74,7 +74,7 @@ The current repository uses these commands:
 .venv/bin/python summarize_results.py
 ```
 
-The official evaluation command performs three attempts per selected challenge and avoids existing trial slots. To **independently reproduce** the original nine-run evaluation, use a **separate clean working directory** checked out at the original evaluated commit `7a39bf0f4e86c266b4475323e61ca9ad3aa5edd3`, install its dependencies and benchmark checkout, and run there with a new result file. Do not copy or overwrite submitted `results.jsonl` or traces. The frozen commit predates the current `results/` directory reorganization, so read its README and script paths from that checkout rather than assuming today's paths were present then. An independent replay involves fresh model calls and can yield different outcomes.
+The official evaluation command performs three attempts per selected challenge and avoids existing trial slots. To independently reproduce the original nine-run evaluation, use a separate clean working directory checked out at the original evaluated commit `7a39bf0f4e86c266b4475323e61ca9ad3aa5edd3`, install its dependencies and benchmark checkout, and run there with a new result file. Do not copy or overwrite submitted `results.jsonl` or traces. The frozen commit predates the current `results/` directory reorganization, so read its README and script paths from that checkout rather than assuming today's paths were present then. An independent replay involves fresh model calls and can yield different outcomes.
 
 ## Results and artifacts
 
@@ -109,11 +109,11 @@ Some archived development traces may instead live under `evidence/development/`.
 | `rev-whataxor` | 0 | 3 | 0% |
 | **Total** | **1** | **9** | **11.11% observed** |
 
-`overall_complete` is **false** because four attempts ended with model API errors and one ended with a recorded `scope_violation`. The latter was traced to an **unsupported tool name**, not a demonstrated escape from the container. The remaining three attempts were budget-exhausted. Do not present 11.11% as an incident-free, completed benchmark success rate.
+`overall_complete` is *false* because four attempts ended with model API errors and one ended with a recorded `scope_violation`. The latter was traced to an unsupported tool name, not a demonstrated escape from the container. The remaining three attempts were budget-exhausted. Do not present 11.11% as an incident-free, completed benchmark success rate.
 
 From `summary.json`, the nine attempts used 117.45 seconds of recorded wall-clock time, 62 model calls, 77 model API attempts including retries, 62 tool calls, 230,673 known input tokens, and 7,136 known output tokens. The 237,809 total known tokens may undercount failed API requests without usage data. Pass@1/2/3 estimates are 11.11%, 22.22%, and 33.33%, calculated from the recorded binary outcomes; these estimates are affected by the incomplete runs.
 
-Monetary `cost_usd` was not provided by the API. The aggregation script separately calculates a **rate-based estimate on known tokens** using its documented price assumptions; it is not an observed charge and excludes unknown consumption from failed requests. Refer to the generated summary for the value and rate assumptions applicable at report generation time.
+Monetary `cost_usd` was not provided by the API. The aggregation script separately calculates a rate-based estimate on known tokens using its documented price assumptions; it is not an observed charge and excludes unknown consumption from failed requests. Refer to the generated summary for the value and rate assumptions applicable at report generation time.
 
 ## Architecture, tools, and control boundary
 
@@ -127,7 +127,7 @@ Monetary `cost_usd` was not provided by the API. The aggregation script separate
 - `benchmark_runner.py`: preflight, fresh per-attempt workspace/container, trial bookkeeping, and result recording.
 - `summarize_results.py`: post-hoc metrics and plots; never needs an Ollama request.
 
-The solver runs as an unprivileged user with `--network none`, read-only root filesystem, a read-only `/challenge` mount, writable `/work` tmpfs, dropped capabilities, limited processes/memory/CPU, and per-command timeouts. The Docker socket and full benchmark repository are not mounted into the solver. `preflight()` checks selected files and rejects challenges requiring a separate service/Compose target. These settings are appropriate for **the three selected file-based challenges**, not a general guarantee of network-challenge compatibility.
+The solver runs as an unprivileged user with `--network none`, read-only root filesystem, a read-only `/challenge` mount, writable `/work` tmpfs, dropped capabilities, limited processes/memory/CPU, and per-command timeouts. The Docker socket and full benchmark repository are not mounted into the solver. `preflight()` checks selected files and rejects challenges requiring a separate service/Compose target. These settings are appropriate for the three selected file-based challenges, not a general guarantee of network-challenge compatibility.
 
 **Limitations:** `run_command` permits general shell commands *within the isolated container* and is not a complete command-level path allowlist. `_safe_path()` validates path strings for dedicated file tools but does not provide comprehensive resolved-path confinement. Unexpected exceptions may prevent a trial record from being appended despite container cleanup. These are documented limitations, not claims of fully prevented behavior.
 
@@ -135,14 +135,14 @@ The solver runs as an unprivileged user with `--network none`, read-only root fi
 
 The original `rev-whataxor` evaluation exposed invalid tool selection and excessive disassembly output. In a post-evaluation pilot, the model requested nonexistent tool `objdump`, leading to premature termination. We then changed unknown-tool requests into recoverable tool errors; an offline mocked-response test showed the agent recovering and finishing. Dedicated dispatcher tests of binary inspection, bounded disassembly, and blocked paths also passed.
 
-A later development pilot of `rev-checker` (run `4d3125ab-328d-4dc8-801e-38e04a55ff2a`) produced a verified flag in five tool calls. This is **separate from the official nine evaluation attempts**. These tests validate components and show a successful pilot, but **do not establish an improved benchmark solve rate**. The current improved agent is the intended candidate for continued November 18 competition development, subject to regression testing.
+A later development pilot of `rev-checker` (run `4d3125ab-328d-4dc8-801e-38e04a55ff2a`) produced a verified flag in five tool calls. This is separate from the official nine evaluation attempts. These tests validate components and show a successful pilot, but do not establish an improved benchmark solve rate. The current improved agent is the intended candidate for continued development for the competition on November 18th, subject to regression testing.
 
 ## Demonstration and reporting
 
-The final package should include an approximately three-page report with challenge-level outcomes, metrics, annotated failure traces, improvement hypothesis and tests, tradeoffs, safety limitations, actual team contributions, and AI/reused-code attribution. A fresh autonomous demo should identify the challenge, run ID, exact commit, tool activity, candidate submission, and verifier result. If recording, keep the video within three minutes and disclose edits or time compression. Do not claim a prior trace is itself a video recording.
+We have produced and added a report totaling our current findings, and future plans for implementation/improvement. We also recorded a video going through a run, and explaining how it works.
 
 ## Reused sources and AI disclosure
 
 Benchmark source: [NYU-LLM-CTF/CTFTiny](https://github.com/NYU-LLM-CTF/CTFTiny). Dataset loader and related tooling: [NYU-LLM-CTF/NYU_CTF_Bench](https://github.com/NYU-LLM-CTF/NYU_CTF_Bench). Ollama Cloud provides model inference.
 
-AI assistance was used for implementation guidance, debugging, test design, and documentation. **Document actual contributions for each team member and cite all reused code and AI usage in the report according to course policy.** Do not substitute placeholder or invented names/contributions.
+AI assistance was used for implementation guidance, debugging, test design, and documentation. The places AI was used are cited in the code itself. AI was not used without human intervention, and all outputs were carefully looked at before being used. No whole section was done through AI, only small pieces.
